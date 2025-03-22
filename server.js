@@ -10,10 +10,10 @@ const app = express();
 app.use(express.json());
 
 const sqlConfig = {
-    server: "localhost\\SQLEXPRESS", // Use the correct instance name
-    database: "testSchema",
-    user: "sa", // Replace with your SQL Server username
-    password: "12345678", // Replace with your SQL Server password
+    server: process.env.SERVER_NAME, // Use the correct instance name
+    database: process.env.DATABASE_NAME,
+    user: process.env.DATABASE_USER, // Replace with your SQL Server username
+    password: process.env.DATABASE_PASSWORD, // Replace with your SQL Server password
     driver: "ODBC Driver 18 for SQL Server",
     options: {
         encrypt: false,
