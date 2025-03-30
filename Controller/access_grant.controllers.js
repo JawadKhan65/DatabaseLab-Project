@@ -4,15 +4,16 @@ import sql from "mssql";
 
 const giveAccess = async (req, res) => {
     try {
-        const { email, user_id, inventory_id, permission_type } = req.body;
+        const { email, user_id_giver,user_id_grant, inventory_id, permission_type } = req.body;
         if (req.user?.email !== email) {
             return res.status(401).json({ success: false, data: 'Access Denied' })
         }
         const pool = await connectDB()
         const poolRequest = pool.request();
-        poolRequest.input('user_id', sql.Int, user_id)
+        poolRequest.input('user_id_giver', sql.Int, user_id)
             .input('inventory_id', sql.Int, inventory_id)
             .input('permission_type', sql.VarChar, permission_type)
+            .input("user_id_grant",sql.Int,user_id_grant)
 
         const result = await poolRequest.execute('grantAccess');
         res.json({ success: true, data: result.recordset });

@@ -13,7 +13,7 @@ async function connectDB() {
         database: process.env.DATABASE_NAME,
         user: process.env.DATABASE_USER, // Replace with your SQL Server username
         password: process.env.DATABASE_PASSWORD, // Replace with your SQL Server password
-        driver: "ODBC Driver 18 for SQL Server",
+        // driver: "ODBC Driver 18 for SQL Server",
         options: {
             encrypt: false,
             trustServerCertificate: true

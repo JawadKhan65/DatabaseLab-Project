@@ -2,8 +2,6 @@ import { connectDB } from "../connectDB.js";
 import sql from "mssql";
 
 
-const pool = await connectDB();
-
 
 const createInventory = async (req, res) => {
     const { user_id, product_name, quantity, price, category } = req.body;
