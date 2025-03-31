@@ -11,6 +11,7 @@ export const verifyToken = (req, res, next) => {
     console.log("verifying jwt token...")
     if (!token) {
         console.log("no token available...")
+        next()
         return { success: false, data: 'Access Denied' }
     }
     try {
@@ -28,6 +29,7 @@ export const verifyToken = (req, res, next) => {
     }
     catch (error) {
         console.log("error verifying token...", error)
+        next()
         return { success: false }
     }
 }
