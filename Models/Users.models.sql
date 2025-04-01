@@ -1,167 +1,151 @@
+USE Project;
 
-use Project
-
-CREATE TABLE users (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    firstName VARCHAR(255) NOT NULL,
-    lastName VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(15) NOT NULL CHECK (phone LIKE '+%-%-%'), -- E.g., +1-555-123-4567
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'employee', 'manager')),
-    created_at DATETIME DEFAULT GETDATE()
-);
-
-
-
+create table users
+(
+	id int primary key identity(1,1),
+	firstName varchar(255) not null,
+	lastName varchar(255) not null,
+	email varchar(255) unique not null,
+	phone varchar(15) not null check (phone LIKE '+%-%-%'),
+	password_hash varchar(255) not null,
+	role varchar(20) not null check (role IN ('admin', 'employee', 'manager')),
+	created_at DATETIME default GETDATE()
+)
+GO
 
 
-
-create procedure createUser 
+-- Procedure to Create User with Additional Validations
+CREATE PROCEDURE createUser
 	@firstName VARCHAR(255),
 	@lastName VARCHAR(255),
 	@email VARCHAR(255),
 	@phone VARCHAR(15),
 	@password VARCHAR(255),
 	@role VARCHAR(20)
-as
-begin
-	IF NOT EXISTS (SELECT 1 FROM users WHERE email = @email)
-	begin
-    INSERT INTO users (firstName, lastName, email, phone, password_hash, role)
-    VALUES (@firstName, @lastName, @email, @phone, @password, @role);
-	select 1 as success ,'user created' as data 
-	end
-	else
-	begin
-	select 0 as success, 'Failed to create user' as message
-	end
-	
+AS
+BEGIN
+	-- Check if email already exists
+	IF EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'Email already exists' AS message;
+		RETURN;
+	END
 
-end
+	-- Check if role is valid
+	IF @role NOT IN ('admin', 'employee', 'manager')
+    BEGIN
+		SELECT 0 AS success, 'Invalid role' AS message;
+		RETURN;
+	END
 
+	-- Check phone number format
+	IF @phone NOT LIKE '+%-%-%'
+    BEGIN
+		SELECT 0 AS success, 'Invalid phone format' AS message;
+		RETURN;
+	END
 
+	INSERT INTO users
+		(firstName, lastName, email, phone, password_hash, role)
+	VALUES
+		(@firstName, @lastName, @email, @phone, @password, @role);
 
-exec createUser @firstName='jk', @lastName='lk',@email='jk@email.com',@phone='+92-302-4310826',@password='123',@role='admin'
+	SELECT 1 AS success, 'User created successfully' AS message;
+END
+GO
 
+-- Procedure to Delete User with Validation
+CREATE PROCEDURE deleteUser
+	@email VARCHAR(255)
+AS
+BEGIN
+	IF NOT EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'User does not exist' AS message;
+		RETURN;
+	END
 
+	DELETE FROM users WHERE email = @email;
+	SELECT 1 AS success, 'User deleted successfully' AS message;
+END
+GO
 
+-- Procedure to Update User Password with Validation
+CREATE PROCEDURE updatePassword
+	@email VARCHAR(255),
+	@password VARCHAR(255)
+AS
+BEGIN
+	IF NOT EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'User not found' AS message;
+		RETURN;
+	END
 
-create procedure deleteUser 
-	@email varchar(255)
-as
-begin
-	if exists(
-	select 1 from users
-	where email=@email
-	)
-	begin
-		delete from users
-		where email=@email
-		select 1 as success,'deletion succcessfull' as message
-	end
-	else
-	begin
-	select 0 as success, 'Failed to create user' as message
-	end
-end
+	UPDATE users SET password_hash = @password WHERE email = @email;
+	SELECT 1 AS success, 'Password updated successfully' AS message;
+END
+GO
+-- Procedure to Retrieve User ID
+CREATE PROCEDURE getUserId
+	@email VARCHAR(255)
+AS
+BEGIN
+	IF NOT EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'User not found' AS message;
+		RETURN;
+	END
 
-exec deleteUser @email = 'jk@email.com'
+	SELECT 1 AS success, id
+	FROM users
+	WHERE email = @email;
+END
+GO
 
+-- Procedure to Login
+CREATE PROCEDURE login
+	@email VARCHAR(255)
+AS
+BEGIN
+	IF NOT EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'No such user' AS message;
+		RETURN;
+	END
 
+	SELECT 1 AS success, firstName, lastName, email, phone, role, password_hash
+	FROM users
+	WHERE email = @email;
+END
+GO
 
-create procedure updatePassword
-	@email varchar(255),
-	@password varchar(255)
+-- Procedure to Get User Details
+CREATE PROCEDURE getUserDetails
+	@email VARCHAR(255)
+AS
+BEGIN
+	IF NOT EXISTS (SELECT 1
+	FROM users
+	WHERE email = @email)
+    BEGIN
+		SELECT 0 AS success, 'User not found' AS message;
+		RETURN;
+	END
 
-as
-begin
-	if exists(
-	select 1 from users
-	where email=@email
-	)
-	begin
+	SELECT 1 AS success, *
+	FROM users
+	WHERE email = @email;
+END
 
-		update users
-		set password_hash=@password
-		where email=@email
-		select 1 as success, 'updated password' as message
-	end
-	else
-	begin
-		select 0 as success,'couldnt update password' as message
-	end
-	
-end
-
-exec updatePassword @email='jk@email.com' , @password='456'
-
-create procedure getUserId
-	@email varchar(255)
-
-as 
-begin
-	if exists(
-	select 1 from users
-	where email=@email
-	)
-	begin 
-		select 1 as success, id from users
-		where email=@email
-
-	end
-	else
-	begin
-	select 0 as success,'couldnt fettch userID' as message
-	end
-
-end
-
-
-exec getUserId @email='jk@email.com'
-
-
-select * from users
-
-
-create procedure login
-	@email varchar(255)
-
-as 
-begin
-	if exists(
-		select 1 from users
-		where email=@email
-	)
-	begin
-
-		select 1 as success,firstName,lastName,email,phone,role,password_hash from users
-		where email=@email
-	end
-	else
-	begin
-		select 0 as  success, 'No such user' as message
-	end
-end
-
-
-create procedure getUserDetails
-	@email varchar(255)
-
-as 
-begin
-	if exists(
-	select 1 from users
-	where email=@email
-	)
-	begin 
-		select 1 as success, * from users
-		where email=@email
-
-	end
-	else
-	begin
-	select 0 as success,'couldnt fettch userDetails' as message
-	end
-
-end
+GO

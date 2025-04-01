@@ -1,106 +1,109 @@
-use Project
-CREATE TABLE expenses (
-    id INT PRIMARY KEY IDENTITY(1,1),
+USE Project;
+
+create table expenses
+(
+	id int primary key identity(1,1),
 	user_id int not null,
-    category VARCHAR(255) NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
-    description TEXT,
-    department_id INT NOT NULL,
-    date DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (department_id) REFERENCES departments(id) on delete cascade on update cascade,
-	foreign key (user_id) references users(id) on delete cascade on update cascade
-);
+	category varchar(255) not null,
+	amount decimal(15,2) not null,
+	description varchar(max),
+	department_id int not null,
+	date DATETIME default GETDATE(),
+	foreign key (department_id) references departments(id) on delete cascade on update cascade,
+	foreign key (user_id) references users(id) on delete NO ACTION on update NO ACTION
+)
+GO
 
-
-
-
--- Procedure to Create Expense
+-- Procedure: Create Expense
 CREATE PROCEDURE createExpense
-    @category VARCHAR(255),
-    @amount DECIMAL(15,2),
-    @description TEXT = NULL,
-    @department_id INT
+	@user_id INT,
+	@category VARCHAR(255),
+	@amount DECIMAL(15,2),
+	@description TEXT = NULL,
+	@department_id INT
 AS
 BEGIN
-    INSERT INTO expenses (category, amount, description, department_id)
-    VALUES (@category, @amount, @description, @department_id);
-END
+	INSERT INTO expenses
+		(user_id, category, amount, description, department_id)
+	VALUES
+		(@user_id, @category, @amount, @description, @department_id);
 
-create procedure updateExpense
-	@expense_id int,
-	@user_id int,
-	@category varchar(255),
-	@amount varchar(255),
-	@description varchar(255),
-	@department_id int
+	-- Return the ID of the newly created expense
+	SELECT SCOPE_IDENTITY() AS expense_id;
+END;
+GO
+-- Procedure: Update Expense
+CREATE PROCEDURE updateExpense
+	@expense_id INT,
+	@user_id INT,
+	@category VARCHAR(255),
+	@amount DECIMAL(15,2),
+	@description TEXT,
+	@department_id INT
+AS
+BEGIN
+	IF EXISTS (
+        SELECT 1
+	FROM expenses
+	WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		UPDATE expenses
+        SET category = @category, amount = @amount, description = @description, date = GETDATE()
+        WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id;
 
-as
-begin
-	if exists(
-	select 1 from expenses
-	where id=@expense_id and user_id=@user_id  and department_id=@department_id
-	)
-	begin
-		update expenses
-		set category=@category, amount=@amount,description=@description
-		where  id=@expense_id and user_id=@user_id  and department_id=@department_id
-		select 1 as success, 'Updation Succesfull' as message
-	end
-	else
-	begin
-		select 0 as success , 'Updation Failed' as message
+		SELECT 1 AS success, 'Update Successful' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Expense Not Found or Permission Denied' AS message;
+	END
+END;
+GO
+-- Procedure: Delete Expense
+CREATE PROCEDURE deleteExpense
+	@expense_id INT,
+	@user_id INT,
+	@department_id INT
+AS
+BEGIN
+	IF EXISTS (
+        SELECT 1
+	FROM expenses
+	WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		DELETE FROM expenses
+        WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id;
 
-
-	end
-end
-
-
-
-create procedure deleteExpense
-	@expense_id int,
-	@user_id int,
-	@department_id int
-
-as
-begin
-	if exists(
-	select 1 from expenses
-	where id=@expense_id and user_id=@user_id  and department_id=@department_id
-	)
-	begin
-		delete from expenses
-		where  id=@expense_id and user_id=@user_id  and department_id=@department_id
-		select 1 as success, 'Updation Succesfull' as message
-	end
-	else
-	begin
-		select 0 as success , 'Updation Failed' as message
-
-
-	end
-end
-
-
-create procedure getExpenses
-	@expense_id int,
-	@user_id int,
-	@department_id int
-
-as
-begin
-	if exists(
-	select 1 from expenses
-	where id=@expense_id and user_id=@user_id  and department_id=@department_id
-	)
-	begin
-		select 1 as success, * from expenses
-		where  id=@expense_id and user_id=@user_id  and department_id=@department_id
-		
-	end
-	else
-	begin
-		select 0 as success , 'Updation Failed' as message
-
-
-	end
-end
+		SELECT 1 AS success, 'Deletion Successful' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Expense Not Found or Permission Denied' AS message;
+	END
+END;
+GO
+-- Procedure: Get Expense
+CREATE PROCEDURE getExpenses
+	@expense_id INT,
+	@user_id INT,
+	@department_id INT
+AS
+BEGIN
+	IF EXISTS (
+        SELECT 1
+	FROM expenses
+	WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		SELECT *
+		FROM expenses
+		WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Expense Not Found' AS message;
+	END
+END;
+GO

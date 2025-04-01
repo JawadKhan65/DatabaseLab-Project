@@ -1,76 +1,84 @@
-use Project
-CREATE TABLE suppliers (
-    id INT PRIMARY KEY IDENTITY(1,1),
+USE Project;
+
+-- Suppliers Table
+create table suppliers
+(
+	id int primary key identity(1,1),
 	user_id int,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    address TEXT
-	Foreign Key (user_id) references users(id)
-);
+	name varchar(255) not null,
+	email varchar(255),
+	phone varchar(20),
+	address varchar(max),
+	foreign key (user_id) references users(id)
+)
+GO
 
-
-
-
+-- Procedure to Create Supplier
 CREATE PROCEDURE createSupplier
-    @name VARCHAR(255),
-	@user_id int,
-    @email VARCHAR(255) = NULL,
-    @phone VARCHAR(20) = NULL,
-    @address TEXT = NULL
+	@name VARCHAR(255),
+	@user_id INT,
+	@email VARCHAR(255) = NULL,
+	@phone VARCHAR(20) = NULL,
+	@address TEXT = NULL
 AS
 BEGIN
-    INSERT INTO suppliers (name,user_id, email, phone, address)
-    VALUES (@name,@user_id, @email, @phone, @address);
+	INSERT INTO suppliers
+		(name, user_id, email, phone, address)
+	VALUES
+		(@name, @user_id, @email, @phone, @address);
+
+	SELECT 1 AS success, 'Supplier created successfully.' AS message;
 END
+GO
 
-
-
-create procedure updateSupplier
-	@supplier_id int,
+-- Procedure to Update Supplier
+CREATE PROCEDURE updateSupplier
+	@supplier_id INT,
 	@name VARCHAR(255),
-	@user_id int,
-    @email VARCHAR(255) = NULL,
-    @phone VARCHAR(20) = NULL,
-    @address TEXT = NULL
-as 
-begin
-	if exists(
-	select  1 from suppliers
-	where id=@supplier_id and USER_ID=@user_id
-	)
-	begin
-	update suppliers
-	set name=@name,address=@address,email=@email,phone=@phone
-	where id=@supplier_id and USER_ID=@user_id
+	@user_id INT,
+	@email VARCHAR(255) = NULL,
+	@phone VARCHAR(20) = NULL,
+	@address TEXT = NULL
+AS
+BEGIN
+	IF EXISTS (
+        SELECT 1
+	FROM suppliers
+	WHERE id = @supplier_id AND user_id = @user_id
+    )
+    BEGIN
+		UPDATE suppliers
+        SET name = @name, address = @address, email = @email, phone = @phone
+        WHERE id = @supplier_id AND user_id = @user_id;
 
-	select 1 as success, 'deleted successfully' as message
-	end
-	else
-	begin
-		select 0 as success , 'deletion failed' as message
-	end
-end
+		SELECT 1 AS success, 'Supplier updated successfully.' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Update failed: Supplier not found or access denied.' AS message;
+	END
+END;
+GO
+-- Procedure to Delete Supplier
+CREATE PROCEDURE deleteSupplier
+	@supplier_id INT,
+	@user_id INT
+AS
+BEGIN
+	IF EXISTS (
+        SELECT 1
+	FROM suppliers
+	WHERE id = @supplier_id AND user_id = @user_id
+    )
+    BEGIN
+		DELETE FROM suppliers
+        WHERE id = @supplier_id AND user_id = @user_id;
 
-
-create procedure deleteSupplier
-	@supplier_id int,
-	@user_id int
-as 
-begin
-	if exists(
-	select  1 from suppliers
-	where id=@supplier_id  and user_id =@user_id
-	)
-	begin
-	delete from suppliers
-	where  id=@supplier_id  and user_id =@user_id
-
-	select 1 as success, 'deleted successfully' as message
-	end
-	else
-	begin
-		select 0 as success , 'deletion failed' as message
-	end
-end
-
+		SELECT 1 AS success, 'Supplier deleted successfully.' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Deletion failed: Supplier not found or access denied.' AS message;
+	END
+END;
+GO

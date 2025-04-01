@@ -1,110 +1,101 @@
-use Project
+USE Project;
 
-CREATE TABLE budget (
-    id INT PRIMARY KEY IDENTITY(1,1),
+create table budget
+(
+	id int primary key identity(1,1),
 	user_id int not null,
-    department_id INT NOT NULL,
-    allocated_amount DECIMAL(15,2) NOT NULL,
-    spent_amount DECIMAL(15,2) DEFAULT 0,
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (department_id) REFERENCES departments(id) on delete cascade on update cascade,
-	foreign key (user_id) references users(id) on delete cascade on update cascade
-);
-
-
-
+	department_id int not null,
+	allocated_amount decimal(15,2) not null,
+	spent_amount decimal(15,2) default 0,
+	created_at DATETIME default GETDATE(),
+	foreign key (department_id) references departments(id) on delete cascade on update cascade,
+	foreign key (user_id) references users(id) on delete NO ACTION on update NO ACTION
+)
+GO
 
 -- Procedure to Create Budget
 CREATE PROCEDURE createBudget
-    @department_id INT,
-    @allocated_amount DECIMAL(15,2)
+	@department_id INT,
+	@allocated_amount DECIMAL(15,2)
 AS
 BEGIN
-    INSERT INTO budget (department_id, allocated_amount)
-    VALUES (@department_id, @allocated_amount);
-END
+	INSERT INTO budget
+		(department_id, allocated_amount)
+	VALUES
+		(@department_id, @allocated_amount);
 
-
+	SELECT 1 AS success, 'Budget created successfully.' AS message;
+END;
+GO
+-- Procedure to Update Budget
 CREATE PROCEDURE updateBudget
-	@budget_id int,
-	@user_id int,
-    @department_id INT,
-    @allocated_amount DECIMAL(15,2)
-
+	@budget_id INT,
+	@user_id INT,
+	@department_id INT,
+	@allocated_amount DECIMAL(15,2)
 AS
 BEGIN
-	if exists(
-		select 1 from budget
-		where id=@budget_id and user_id=@user_id and department_id=@department_id
-	)
-	begin
-		update budgets
-		set allocated_amount = @allocated_amount
-		where id=@budget_id and user_id=@user_id and department_id=@department_id
+	IF EXISTS (
+        SELECT 1
+	FROM budget
+	WHERE id = @budget_id AND user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		UPDATE budget
+        SET allocated_amount = @allocated_amount
+        WHERE id = @budget_id AND user_id = @user_id AND department_id = @department_id;
 
-		select 1 as success, 'Updation Successfull' as message
-	end
-	else
-	begin
-	select 0 as success , 'Updation Failed' as message
-
-	end
-
-END
-
-
-
+		SELECT 1 AS success, 'Budget updated successfully.' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Budget not found or access denied.' AS message;
+	END
+END;
+GO
+-- Procedure to Delete Budget
 CREATE PROCEDURE deleteBudget
-	@budget_id int,
-	@user_id int,
-    @department_id INT,
-   
-
+	@budget_id INT,
+	@user_id INT,
+	@department_id INT
 AS
 BEGIN
-	if exists(
-		select 1 from budget
-		where id=@budget_id and user_id=@user_id and department_id=@department_id
-	)
-	begin
-		delete from budgets 
-		where id=@budget_id and user_id=@user_id and department_id=@department_id
+	IF EXISTS (
+        SELECT 1
+	FROM budget
+	WHERE id = @budget_id AND user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		DELETE FROM budget
+        WHERE id = @budget_id AND user_id = @user_id AND department_id = @department_id;
 
-		select 1 as success, 'Updation Successfull' as message
-	end
-	else
-	begin
-	select 0 as success , 'Updation Failed' as message
-
-	end
-
-END
-
-
-
+		SELECT 1 AS success, 'Budget deleted successfully.' AS message;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'Budget not found or access denied.' AS message;
+	END
+END;
+GO
+-- Procedure to Get Budgets
 CREATE PROCEDURE getBudgets
-	
-	@user_id int,
-    @department_id INT,
-  
-
+	@user_id INT,
+	@department_id INT
 AS
 BEGIN
-	if exists(
-		select 1 from budget
-		where user_id=@user_id and department_id=@department_id
-	)
-	begin
-		select 1 as success,* from budgets
-		where id=@budget_id and user_id=@user_id and department_id=@department_id
-
-		select 1 as success, 'Updation Successfull' as message
-	end
-	else
-	begin
-	select 0 as success , 'Updation Failed' as message
-
-	end
-
-END
-
+	IF EXISTS (
+        SELECT 1
+	FROM budget
+	WHERE user_id = @user_id AND department_id = @department_id
+    )
+    BEGIN
+		SELECT 1 AS success, *
+		FROM budget
+		WHERE user_id = @user_id AND department_id = @department_id;
+	END
+    ELSE
+    BEGIN
+		SELECT 0 AS success, 'No budgets found for the specified department.' AS message;
+	END
+END;
+GO
