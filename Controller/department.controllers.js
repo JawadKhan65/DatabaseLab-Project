@@ -3,7 +3,10 @@ import sql from "mssql";
 
 const createDepartment = async (req, res) => {
     try {
-        const { user_id, department_name } = req.body;
+        const { email, user_id, department_name } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const pool = await connectDB();
 
         const poolRequest = pool.request();
@@ -61,9 +64,14 @@ const updateDepartment = async (req, res) => {
 
 const getDepartments = async (req, res) => {
     try {
+        const { email, user_id } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
+
         const pool = await connectDB();
         const poolRequest = pool.request();
-
+        poolRequest.input('user_id', sql.Int, user_id);
         const result = await poolRequest.execute('getDepartments');
 
         res.json({ success: true, data: result.recordset });
@@ -73,21 +81,6 @@ const getDepartments = async (req, res) => {
     }
 }
 
-const getDepartmentById = async (req, res) => {
-    try {
-        const { department_id } = req.body;
-        const pool = await connectDB();
-        const poolRequest = pool.request();
-        poolRequest.input('department_id', sql.Int, department_id);
-
-        const result = await poolRequest.execute('getDepartmentById');
-
-        res.json({ success: true, data: result.recordset });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-}
 
 
-export { createDepartment, deleteDepartment, updateDepartment, getDepartments, getDepartmentById };
+export { createDepartment, deleteDepartment, updateDepartment, getDepartments };

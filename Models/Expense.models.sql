@@ -85,21 +85,22 @@ BEGIN
 END;
 GO
 -- Procedure: Get Expense
+
 CREATE PROCEDURE getExpenses
-	@expense_id INT,
-	@user_id INT,
-	@department_id INT
+
+	@user_id INT
+
 AS
 BEGIN
 	IF EXISTS (
         SELECT 1
 	FROM expenses
-	WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id
-    )
+	WHERE  user_id = @user_id 
+	)
     BEGIN
 		SELECT *
 		FROM expenses
-		WHERE id = @expense_id AND user_id = @user_id AND department_id = @department_id;
+		WHERE user_id = @user_id
 	END
     ELSE
     BEGIN

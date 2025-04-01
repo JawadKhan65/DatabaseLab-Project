@@ -3,14 +3,18 @@ import sql from "mssql";
 
 const createSupplier = async (req, res) => {
     try {
-        const { name, email, phone, address } = req.body;
+        const { email, user_id, name, supplier_email, phone, address } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const pool = await connectDB();
 
         const poolRequest = pool.request();
         poolRequest.input('name', sql.VarChar, name)
-            .input('email', sql.VarChar, email || null)
+            .input('email', sql.VarChar, supplier_email || null)
             .input('phone', sql.VarChar, phone || null)
-            .input('address', sql.Text, address || null);
+            .input('address', sql.Text, address || null)
+            .input('user_id', sql.Int, user_id);
 
         const result = await poolRequest.execute('createSupplier');
 
@@ -44,14 +48,14 @@ const deleteSupplier = async (req, res) => {
 
 const updateSupplier = async (req, res) => {
     try {
-        const { email, user_id, supplier_id, name, phone, address } = req.body;
+        const { email, supplier_email, user_id, name, phone, address } = req.body;
         if (!req.user || req.user.email !== email) {
             return res.status(401).json({ success: false, message: 'Access Denied' });
         }
 
         const pool = await connectDB();
         const poolRequest = pool.request();
-        poolRequest.input('supplier_id', sql.Int, supplier_id)
+        poolRequest.input('email', sql.Int, supplier_email)
             .input('user_id', sql.Int, user_id)
             .input('name', sql.VarChar, name)
             .input('phone', sql.VarChar, phone || null)

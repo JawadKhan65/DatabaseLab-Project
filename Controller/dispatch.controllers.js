@@ -3,12 +3,15 @@ import sql from "mssql";
 
 const createDispatch = async (req, res) => {
     try {
-        const { order_id, dispatched_by } = req.body;
+        const { email, order_id, user_id } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const pool = await connectDB();
 
         const poolRequest = pool.request();
         poolRequest.input('order_id', sql.Int, order_id)
-            .input('dispatched_by', sql.Int, dispatched_by || null);
+            .input('user_id', sql.Int, user_id);
 
         const result = await poolRequest.execute('createDispatch');
 
@@ -40,7 +43,7 @@ const deleteDispatch = async (req, res) => {
 
 const updateDispatch = async (req, res) => {
     try {
-        const { email, user_id, dispatch_id, order_id, dispatched_by } = req.body;
+        const { email, user_id, dispatch_id, status } = req.body;
         if (!req.user || req.user.email !== email) {
             return res.status(401).json({ success: false, message: 'Access Denied' });
         }
@@ -49,8 +52,7 @@ const updateDispatch = async (req, res) => {
         const poolRequest = pool.request();
         poolRequest.input('dispatch_id', sql.Int, dispatch_id)
             .input('user_id', sql.Int, user_id)
-            .input('order_id', sql.Int, order_id)
-            .input('dispatched_by', sql.Int, dispatched_by || null);
+            .input('status', sql.Int, status);
 
         const result = await poolRequest.execute('updateDispatch');
         res.json({ success: true, message: 'Dispatch updated successfully', data: result.recordset });
@@ -62,10 +64,14 @@ const updateDispatch = async (req, res) => {
 
 const getDispatches = async (req, res) => {
     try {
+        const { email, user_id } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const pool = await connectDB();
         const poolRequest = pool.request();
-
-        const result = await poolRequest.execute('getDispatches');
+        poolRequest.input('user_id', sql.Int, user_id);
+        const result = await poolRequest.execute('getDispatch');
 
         res.json({ success: true, data: result.recordset });
     } catch (error) {

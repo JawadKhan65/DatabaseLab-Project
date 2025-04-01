@@ -35,20 +35,20 @@ BEGIN
 END;
 GO
 -- Procedure to Delete Sale
+
 CREATE PROCEDURE deleteSale
 	@user_id INT,
-	@order_id INT,
 	@sale_id INT
 AS
 BEGIN
 	IF EXISTS (
         SELECT 1
 	FROM sales
-	WHERE user_id = @user_id AND order_id = @order_id AND id = @sale_id
+	WHERE user_id = @user_id AND id = @sale_id
     )
     BEGIN
 		DELETE FROM sales
-        WHERE user_id = @user_id AND order_id = @order_id AND id = @sale_id;
+        WHERE user_id = @user_id AND id = @sale_id;
 
 		SELECT 1 AS success, 'Sale deleted successfully.' AS message;
 	END
@@ -95,3 +95,25 @@ BEGIN
 	END
 END;
 GO
+
+-- Procedure to Get Sale by ID
+CREATE PROCEDURE getSales
+	@user_id INT
+AS
+BEGIN
+	if exists(
+	SELECT 1
+	FROM sales
+	WHERE user_id = @user_id
+	)
+	BEGIN
+		SELECT *
+		FROM sales
+		WHERE user_id = @user_id;
+	END
+	ELSE
+	BEGIN
+		SELECT 0 AS success, 'No sales found for this user.' AS message;
+	END
+END;
+	

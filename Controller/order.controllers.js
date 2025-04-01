@@ -3,12 +3,16 @@ import sql from "mssql";
 
 const createOrder = async (req, res) => {
     try {
-        const { supplier_id, total_amount } = req.body;
+        const { email, user_id, supplier_id, total_amount } = req.body;
+        if (req.user.email !== email) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
         const pool = await connectDB();
 
         const poolRequest = pool.request();
         poolRequest.input('supplier_id', sql.Int, supplier_id)
-            .input('total_amount', sql.Decimal(15, 2), total_amount);
+            .input('total_amount', sql.Decimal(15, 2), total_amount)
+            .input('user_id', sql.Int, user_id)
 
         const result = await poolRequest.execute('createOrder');
 
@@ -21,11 +25,16 @@ const createOrder = async (req, res) => {
 
 const deleteOrder = async (req, res) => {
     try {
-        const { order_id } = req.body;
-
+        const { email, order_id, supplier_id, user_id } = req.body;
+        if (req.user.email !== email) {
+            res.status(403).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
         const pool = await connectDB();
         const poolRequest = pool.request();
-        poolRequest.input('order_id', sql.Int, order_id);
+        poolRequest.input('order_id', sql.Int, order_id)
+            .input('supplier_id', sql.Int, supplier_id)
+            .input('user_id', sql.Int, user_id)
 
         const result = await poolRequest.execute('deleteOrder');
 
@@ -38,13 +47,19 @@ const deleteOrder = async (req, res) => {
 
 const updateOrder = async (req, res) => {
     try {
-        const { order_id, supplier_id, total_amount } = req.body;
+        const { email, user_id, order_id, supplier_id, total_amount, status } = req.body;
+        if (req.user.email !== email) {
+            res.status(403).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
 
         const pool = await connectDB();
         const poolRequest = pool.request();
         poolRequest.input('order_id', sql.Int, order_id)
             .input('supplier_id', sql.Int, supplier_id)
-            .input('total_amount', sql.Decimal(15, 2), total_amount);
+            .input('total_amount', sql.Decimal(15, 2), total_amount)
+            .input('user_id', sql.Int, user_id)
+            .input('status', sql.Int, status)
 
         const result = await poolRequest.execute('updateOrder');
 

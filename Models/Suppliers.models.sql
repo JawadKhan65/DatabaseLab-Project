@@ -33,7 +33,6 @@ GO
 
 -- Procedure to Update Supplier
 CREATE PROCEDURE updateSupplier
-	@supplier_id INT,
 	@name VARCHAR(255),
 	@user_id INT,
 	@email VARCHAR(255) = NULL,
@@ -82,3 +81,24 @@ BEGIN
 	END
 END;
 GO
+
+-- Procedure to Get Supplier by ID
+CREATE PROCEDURE getSuppliers
+	@user_id INT
+AS
+BEGIN
+	if exists (
+		SELECT 1
+	from users
+	WHERE id = @user_id
+	)
+	BEGIN
+		SELECT 1 as success, 'Supplier retrieved successfully.' as message, s.*
+		FROM suppliers s
+		WHERE s.user_id = @user_id;
+	END
+	ELSE
+	BEGIN
+		SELECT 0 AS success, 'User not found.' AS message;
+	END
+END;

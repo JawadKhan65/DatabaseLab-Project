@@ -14,15 +14,18 @@ create table budget
 GO
 
 -- Procedure to Create Budget
+
+
 CREATE PROCEDURE createBudget
 	@department_id INT,
-	@allocated_amount DECIMAL(15,2)
+	@allocated_amount DECIMAL(15,2),
+	@user_id INT
 AS
 BEGIN
 	INSERT INTO budget
-		(department_id, allocated_amount)
+		(user_id, allocated_amount)
 	VALUES
-		(@department_id, @allocated_amount);
+		(@user_id, @allocated_amount);
 
 	SELECT 1 AS success, 'Budget created successfully.' AS message;
 END;

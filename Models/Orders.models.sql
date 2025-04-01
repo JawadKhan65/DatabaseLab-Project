@@ -48,11 +48,13 @@ BEGIN
 END;
 GO
 -- Procedure: Update Order
+
 CREATE PROCEDURE updateOrder
 	@supplier_id INT,
 	@user_id INT,
 	@order_id INT,
-	@total_amount DECIMAL(15,2)
+	@total_amount DECIMAL(15,2),
+	@status VARCHAR(50)
 AS
 BEGIN
 	-- Check if the order exists and belongs to the user

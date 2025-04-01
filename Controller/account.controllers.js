@@ -67,7 +67,13 @@ const updateAccount = async (req, res) => {
 }
 const getAccounts = async (req, res) => {
     try {
-        const { user_id } = req.body;
+        const { email, user_id } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
+        if (!user_id) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
         const pool = await connectDB();
         const poolRequest = pool.request();
         poolRequest.input('user_id', sql.Int, user_id);

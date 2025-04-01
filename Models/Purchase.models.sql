@@ -87,20 +87,20 @@ BEGIN
 END;
 GO
 -- Procedure to Get a Specific Purchase
-CREATE PROCEDURE getPurchase
-    @purchase_id INT,
+
+CREATE PROCEDURE getPurchases
     @user_id INT
 AS
 BEGIN
     IF EXISTS (
         SELECT 1
     FROM purchases
-    WHERE id = @purchase_id AND user_id = @user_id
+    WHERE  user_id = @user_id
     )
     BEGIN
         SELECT *
         FROM purchases
-        WHERE id = @purchase_id AND user_id = @user_id;
+        WHERE  user_id = @user_id;
     END
     ELSE
     BEGIN

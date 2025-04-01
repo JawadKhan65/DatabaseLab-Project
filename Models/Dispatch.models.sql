@@ -64,13 +64,14 @@ BEGIN
 END;
 GO
 -- Procedure to Get Dispatch Details
+
 CREATE PROCEDURE getDispatch
-	@order_id INT,
+
 	@user_id INT
 AS
 BEGIN
 	SELECT *
 	FROM dispatch
-	WHERE order_id = @order_id AND user_id = @user_id;
+	WHERE  user_id = @user_id;
 END;
 GO

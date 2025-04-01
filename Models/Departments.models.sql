@@ -34,20 +34,21 @@ BEGIN
 END;
 GO
 -- Procedure to Get Department(s)
+
 CREATE PROCEDURE getDepartments
-	@user_id INT,
-	@department_id INT
+	@user_id INT
+
 AS
 BEGIN
 	IF EXISTS (
         SELECT 1
 	FROM departments
-	WHERE id = @department_id AND user_id = @user_id
+	WHERE  user_id = @user_id
     )
     BEGIN
 		SELECT 1 AS success, *
 		FROM departments
-		WHERE id = @department_id AND user_id = @user_id;
+		WHERE  user_id = @user_id;
 	END
     ELSE
     BEGIN

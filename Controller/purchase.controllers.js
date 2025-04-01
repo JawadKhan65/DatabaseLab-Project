@@ -3,12 +3,17 @@ import sql from "mssql";
 
 const createPurchase = async (req, res) => {
     try {
-        const { supplier_id, total_amount } = req.body;
+        const { email, user_id, supplier_id, total_amount } = req.body;
+        if (req.user.email !== email) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
         const pool = await connectDB();
 
         const poolRequest = pool.request();
         poolRequest.input('supplier_id', sql.Int, supplier_id)
-            .input('total_amount', sql.Decimal(15, 2), total_amount);
+            .input('total_amount', sql.Decimal(15, 2), total_amount)
+            .input('user_id', sql.Int, user_id)
+
 
         const result = await poolRequest.execute('createPurchase');
 
@@ -21,11 +26,14 @@ const createPurchase = async (req, res) => {
 
 const deletePurchase = async (req, res) => {
     try {
-        const { purchase_id } = req.body;
-
+        const { email, user_id, purchase_id } = req.body;
+        if (req.user.email !== email) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
         const pool = await connectDB();
         const poolRequest = pool.request();
-        poolRequest.input('purchase_id', sql.Int, purchase_id);
+        poolRequest.input('purchase_id', sql.Int, purchase_id)
+            .input('user_id', sql.Int, user_id)
 
         const result = await poolRequest.execute('deletePurchase');
 
@@ -37,13 +45,17 @@ const deletePurchase = async (req, res) => {
 
 const updatePurchase = async (req, res) => {
     try {
-        const { purchase_id, supplier_id, total_amount } = req.body;
+        const { email, user_id, purchase_id, supplier_id, total_amount } = req.body;
+        if (req.user.email !== email) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
 
         const pool = await connectDB();
         const poolRequest = pool.request();
         poolRequest.input('purchase_id', sql.Int, purchase_id)
             .input('supplier_id', sql.Int, supplier_id)
-            .input('total_amount', sql.Decimal(15, 2), total_amount);
+            .input('total_amount', sql.Decimal(15, 2), total_amount)
+            .input('user_id', sql.Int, user_id)
 
         const result = await poolRequest.execute('updatePurchase');
 

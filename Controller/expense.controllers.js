@@ -3,14 +3,18 @@ import sql from "mssql";
 
 const createExpense = async (req, res) => {
     try {
-        const { category, amount, description, department_id } = req.body;
+        const { email, user_id, category, amount, description, department_id } = req.body;
         const pool = await connectDB();
 
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const poolRequest = pool.request();
         poolRequest.input('category', sql.VarChar, category)
             .input('amount', sql.Decimal(15, 2), amount)
             .input('description', sql.Text, description || null)
-            .input('department_id', sql.Int, department_id);
+            .input('department_id', sql.Int, department_id)
+            .input('user_id', sql.Int, user_id);
 
         const result = await poolRequest.execute('createExpense');
 
@@ -23,7 +27,7 @@ const createExpense = async (req, res) => {
 
 const deleteExpense = async (req, res) => {
     try {
-        const { email, user_id, expense_id } = req.body;
+        const { email, user_id, expense_id, department_id } = req.body;
         if (!req.user || req.user.email !== email) {
             return res.status(401).json({ success: false, message: 'Access Denied' });
         }
@@ -31,7 +35,8 @@ const deleteExpense = async (req, res) => {
         const pool = await connectDB();
         const poolRequest = pool.request();
         poolRequest.input('user_id', sql.Int, user_id)
-            .input('expense_id', sql.Int, expense_id);
+            .input('expense_id', sql.Int, expense_id)
+            .input('department_id', sql.Int, department_id);
 
         const result = await poolRequest.execute('deleteExpense');
         res.json({ success: true, message: 'Expense deleted successfully', data: result.recordset });
@@ -43,7 +48,7 @@ const deleteExpense = async (req, res) => {
 
 const updateExpense = async (req, res) => {
     try {
-        const { email, user_id, expense_id, category, amount, description } = req.body;
+        const { email, user_id, expense_id, category, amount, description, department_id } = req.body;
         if (!req.user || req.user.email !== email) {
             return res.status(401).json({ success: false, message: 'Access Denied' });
         }
@@ -54,7 +59,8 @@ const updateExpense = async (req, res) => {
             .input('user_id', sql.Int, user_id)
             .input('category', sql.VarChar, category)
             .input('amount', sql.Decimal(15, 2), amount)
-            .input('description', sql.Text, description || null);
+            .input('description', sql.Text, description || null)
+            .input('department_id', sql.Int, department_id);
 
         const result = await poolRequest.execute('updateExpense');
         res.json({ success: true, message: 'Expense updated successfully', data: result.recordset });
@@ -66,8 +72,13 @@ const updateExpense = async (req, res) => {
 
 const getExpenses = async (req, res) => {
     try {
+        const { email, user_id } = req.body;
+        if (!req.user || req.user.email !== email) {
+            return res.status(401).json({ success: false, message: 'Access Denied' });
+        }
         const pool = await connectDB();
-        const poolRequest = pool.request();
+        const poolRequest = pool.request()
+        poolRequest.input('user_id', sql.Int, user_id);
 
         const result = await poolRequest.execute('getExpenses');
 
